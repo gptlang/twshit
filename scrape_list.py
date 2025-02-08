@@ -4,6 +4,8 @@ import argparse
 from twscrape import API, gather
 from twscrape.models import List
 
+from store import Store, User
+
 
 class Logger:
    def __init__(self, verbose: bool):
@@ -27,12 +29,13 @@ async def main():
    lists: list[List] = await gather(api.search("Crypto", limit=1, kv={"product": "Lists", "querySource": ""}))
    lists.sort(key=lambda x: x.id, reverse=True)
    print(lists[0], len(lists))
-   # logger.log("Getting list users...")
-   # users = await gather(api.list_members(1073407660337188865))
-   # print(len(users))
-   # print(users[0])
-   # for user in users:
-   #    print(user)
+   logger.log("Getting list users...")
+   for lis in lists[0:10]:
+      users = await gather(api.list_members(lis.id))
+      store = Store()
+      for user in users:
+         store.add_user(User(id=user.id, name=user.username, followers=user.followersCount))
+      
    
 
 

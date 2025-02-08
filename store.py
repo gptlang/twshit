@@ -26,4 +26,29 @@ class Tweet(Base):
 
 class Store:
       def __init__(self) -> None:
-         self.engine: sa.Engine = sa.create_engine('sqlite+pysqlite://twitter.db')
+         self.engine: sa.Engine = sa.create_engine('sqlite:///twitter.db')
+
+         Base.metadata.create_all(self.engine)
+         self.session: orm.Session = orm.Session(self.engine)
+
+      def add_user(self, user: User) -> None:
+          existing = self.session.get(User, user.id)
+          if existing:
+              existing.name = user.name
+              existing.followers = user.followers
+              existing.influence = user.influence
+          else:
+              self.session.add(user)
+          self.session.commit()
+
+      def add_tweet(self, tweet: Tweet) -> None:
+         self.session.add(tweet)
+         self.session.commit()
+
+      def get_users(self, limit: int = 10) -> list[User]:
+         return self.session.query(User).order_by(User.followers.desc()).limit(limit).all()
+
+
+
+
+
